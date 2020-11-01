@@ -11,6 +11,8 @@ var appleX;
 var appleY;
 var appleOnPole = false;
 var dead = false;
+var scoreDisplay = document.getElementById("score");
+var diedDisplay = document.getElementById("died");
 var goingTop = false;
 var goingDown = false;
 var goingRight = true;
@@ -44,6 +46,9 @@ function tail() {
     tailX.shift();
     tailY.push(playerY);
     tailY.shift();
+}
+function score() {
+    scoreDisplay.textContent = "score: " + (snakeLenght - 1);
 }
 
 function keyCode(event) {
@@ -104,6 +109,7 @@ function apple() {
         for(var i = 0; i < tailX.length; i++) {
             if(appleX == tailX[i] && appleY == tailY[i]) {
                 appleOnPole = false;
+                apple();
             }
         }
         if(appleX == playerX && appleY == playerY) {
@@ -124,7 +130,10 @@ function apple() {
 }
 
 function death() {
-    if(dead) { console.log("seš mrtvej!")}
+    if(dead) { 
+        console.log("ses mrtvej!");
+        diedDisplay.textContent = "ZEMREL JSI";
+    }
         if(playerX > pole - 1 || playerX < 0 || playerY > pole - 1 || playerY < 0) {
             dead = true;
         }
@@ -136,6 +145,7 @@ function mainLoop() {
     tail();
     }
     death();
+    score();
 }
 function speedyMainLoop() {
     apple();
