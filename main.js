@@ -1,158 +1,113 @@
-/*dlouhý řádek kanvasu*/var canvas = document.createElement("canvas"); canvas.width = "800"; canvas.height = "800";document.body.appendChild(canvas);var c = canvas.getContext("2d");c.scale(40, 40);
+var canvas = document.createElement("canvas"); canvas.width = 800; canvas.height = 460; document.body.appendChild(canvas);
+var c = canvas.getContext("2d");
 
-//KONSTANTY
-var playerX = 1;
-var playerY = 1;
-var snakeLenght = 3;
-var pole = 10;
-var tailX = [0, 0];
-var tailY = [0, 0];
-var appleX;
-var appleY;
-var appleOnPole = false;
-var dead = false;
+var playerX = 50;
+var playerY = 50;
+var playerPredniX;
+var HorniPipeY = [50, 100, 200];
+var PredniPipeX = [200, 400, 600];
+var ZadniPipeX = [];
+var gravitace = 0;
+var gravitaceZrychleni = 0.2;
+var died = false;
+var mezernikPress = false;
+var timer = 0;
+var timerCounts = false;
+var kolizeX = false;
+var kolizeY = false;
 var scoreDisplay = document.getElementById("score");
-var diedDisplay = document.getElementById("died");
-var goingTop = false;
-var goingDown = false;
-var goingRight = true;
-var goingLeft = false;
+var score = 0;
 
-//FUNKCE
+function gravity() {
+    gravitace += gravitaceZrychleni;
+    playerY += gravitace;
+    if(playerY > 400) { died = true;}
+}
+function jump() {
+    if(mezernikPress && !timerCounts) {
+        gravitace = 0 - 5;
+        mezernikPress = false;
+        timerCounts = true;
+    }
+    if(timerCounts) {
+        timer += 1;
+    }
+    if(timer > 10) {
+        timer = 0;
+        timerCounts = false;
+        mezernikPress = false;
+    }
+}
 function draw() {
     c.clearRect(0, 0, canvas.width, canvas.height);
-    c.fillStyle = "#3b3535";//šedá
-    c.fillRect(0, 0, pole, pole);
-
-    for(var i = 0; i < snakeLenght; i++) {
-        c.fillStyle = "#2fd44d";//světlejší zelená
-        c.fillRect(tailX[i], tailY[i], 1, 1);
+    if(!died){
+    c.fillStyle = "yellow";
+    c.fillRect(playerX, playerY, 50, 50);
+    }else if(died) {
+        c.fillStyle = "red";
+        c.fillRect(playerX, playerY, 50, 50);
     }
-    c.fillStyle = "#21a332";//zelená
-    c.fillRect(playerX, playerY, 1, 1);
-
-    c.fillStyle = "red";
-    c.fillRect(appleX, appleY, 1, 1);
-}
-function tail() {
-    for(var i = 0; i < snakeLenght; i++) {
-        if(playerX == tailX[tailX.length] && playerY == tailY[tailY.length]){
-            dead = false;
-        }else if(playerX == tailX[i] && playerY == tailY[i]) {
-            dead = true;
-        }
-    }
-    tailX.push(playerX);
-    tailX.shift();
-    tailY.push(playerY);
-    tailY.shift();
-}
-function score() {
-    scoreDisplay.textContent = "score: " + (snakeLenght - 1);
-}
-
-function keyCode(event) {
-    switch(event.keyCode){
-        case 87://W
-            goingTop = true;
-            goingDown = false;
-            goingLeft = false;
-            goingRight = false;
-            break;
-        case 65://A
-            goingTop = false;
-            goingDown = false;
-            goingLeft = true;
-            goingRight = false;
-            break;
-        case 83: //S
-            goingTop = false;
-            goingDown = true;
-            goingLeft = false;
-            goingRight = false;
-            break;
-        case 68: //D
-            goingTop = false;
-            goingDown = false;
-            goingLeft = false;
-            goingRight = true;
-            break;
+    //země
+    c.fillStyle = "#1b9917";
+    c.fillRect(0, 450, 5000, 10);
+    //pipy
+    for(var i = 0;i < PredniPipeX.length;i++) {
+    c.fillStyle = "#08ff00";
+    c.fillRect(PredniPipeX[i], 0, 50, HorniPipeY[i]);
+    c.fillRect(PredniPipeX[i], HorniPipeY[i] + 150, 50, 500);
     }
 }
-function move() {
-    if(goingTop) {
-        playerY -= 1;
-    }else if(goingDown) {
-        playerY += 1;
-    }else if(goingRight) {
-        playerX += 1;
-    }else if(goingLeft) {
-        playerX -= 1;
-    }
-
-    if(playerX > pole - 1) {
-        playerX = pole - 1;
-    }else if(playerY > pole - 1) {
-        playerY = pole - 1;
-    }else if(playerX < 0) {
-        playerX = 0;
-    }else if(playerY < 0) {
-        playerY = 0;
+function KeyPress(event) {
+    mezernikPress = false;
+    if(event.keyCode = 32) {
+        mezernikPress = true;
+    }else{
+        mezernikPress = false;
     }
 }
 
-function apple() {
-    if(!appleOnPole){
-        appleX = Math.round(Math.random() * 10);
-        appleY = Math.round(Math.random() * 10);
-        appleOnPole = true;
-        for(var i = 0; i < tailX.length; i++) {
-            if(appleX == tailX[i] && appleY == tailY[i]) {
-                appleOnPole = false;
-                apple();
-            }
-        }
-        if(appleX == playerX && appleY == playerY) {
-            appleOnPole = false;
-        }
-        if(appleX >= 10) {
-            appleX = 9;
-        }if(appleY >= 10){
-            appleY = 9;
-        }
-    }
-    if(playerX == appleX && playerY == appleY) {
-        appleOnPole = false;
-        tailX.push(playerX);
-        tailY.push(playerY);
-        snakeLenght += 1;
-    }
-}
+function pipe() {
+    for(var i = 0; i < PredniPipeX.length; i++) {
+    ZadniPipeX[i] = PredniPipeX[i] + 50; //pokud budeš měmit tloušťku pipy, změň jí i tady
+    playerPredniX = playerX + 50;
+    
 
-function death() {
-    if(dead) { 
-        console.log("ses mrtvej!");
-        diedDisplay.textContent = "ZEMREL JSI";
+    if(PredniPipeX[i] < -50) {
+        PredniPipeX[i] = 600;
+        HorniPipeY[i] = 50 + Math.random() * 200;
+        score += 1;
+        scoreDisplay.textContent = "Score: " + score;
     }
-        if(playerX > pole - 1 || playerX < 0 || playerY > pole - 1 || playerY < 0) {
-            dead = true;
-        }
+
+    if((playerPredniX > PredniPipeX[i] && playerPredniX < ZadniPipeX[i]) || (playerX > PredniPipeX[i] && playerX < ZadniPipeX[i])) {
+        kolizeX = true;
+    }else{
+        kolizeX = false;
+    }
+    if(playerY < HorniPipeY[i] || playerY + 50 > HorniPipeY[i] + 150) {
+        kolizeY = true;
+    }else{
+        kolizeY = false;
+    }
+    if(kolizeX && kolizeY) {
+        died = true;
+        console.log("died");
+    }
+    PredniPipeX[i] -= 1;
+}
 }
 
 function mainLoop() {
-    if(!dead) {
-    move();
-    tail();
+    if(!died){
+        jump();
+        gravity();
+        draw();
+        pipe();
     }
-    death();
-    score();
-}
-function speedyMainLoop() {
-    apple();
     draw();
-    window.requestAnimationFrame(speedyMainLoop);
+    window.requestAnimationFrame(mainLoop);
 }
-setInterval(mainLoop, 500);
-window.addEventListener("keydown", keyCode);
-window.addEventListener("keyup", keyCode);
-window.requestAnimationFrame(speedyMainLoop);
+
+window.addEventListener("keydown", KeyPress);
+window.addEventListener("keyup", KeyPress);
+window.addEventListener("load", mainLoop);
